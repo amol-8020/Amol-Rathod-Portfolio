@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  base: '/',
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
@@ -10,5 +11,8 @@ export default defineConfig({
       '/api': { target: 'http://localhost:4000', changeOrigin: true },
       '/uploads': { target: 'http://localhost:4000', changeOrigin: true },
     },
+  },
+  build: {
+    chunkSizeWarningLimit: 1500,
   },
 })

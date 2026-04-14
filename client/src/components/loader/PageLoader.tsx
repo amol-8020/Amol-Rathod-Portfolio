@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect } from 'react'
-import { useLoader } from '../../context/LoaderContext'
+import { useLoader } from '../../context/useLoader'
 
 export function PageLoader() {
   const { done, setDone } = useLoader()

@@ -25,7 +25,24 @@ type FormValues = z.infer<typeof formSchema>
 
 const defaultPin = import.meta.env.VITE_DASHBOARD_PIN ?? '8821'
 
-export function DashboardPage() {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function normalizeProject(project: unknown): Project {
+  const p = isRecord(project) ? project : {}
+  return {
+    id: typeof p.id === 'string' ? p.id : crypto.randomUUID(),
+    title: typeof p.title === 'string' ? p.title : 'Untitled project',
+    description: typeof p.description === 'string' ? p.description : '',
+    technologies: Array.isArray(p.technologies) ? p.technologies.filter((item): item is string => typeof item === 'string') : [],
+    imageUrl: typeof p.imageUrl === 'string' ? p.imageUrl : '',
+    projectUrl: typeof p.projectUrl === 'string' ? p.projectUrl : undefined,
+    githubUrl: typeof p.githubUrl === 'string' ? p.githubUrl : undefined,
+  }
+}
+
+export function DashboardPage(): JSX.Element {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(AUTH_KEY) === '1')
   const [pin, setPin] = useState('')
   const [pinErr, setPinErr] = useState(false)
@@ -50,7 +67,7 @@ export function DashboardPage() {
   const load = async () => {
     try {
       const r = await api.get<Project[]>('/api/projects')
-      setProjects(r.data)
+      setProjects((Array.isArray(r.data) ? r.data : []).map((project) => normalizeProject(project)))
       setLoadErr(null)
     } catch {
       setLoadErr('API offline. Run `npm run dev` in /server (port 4000).')
@@ -58,18 +75,26 @@ export function DashboardPage() {
   }
 
   useEffect(() => {
-    if (authed) void load()
+    if (!authed) return
+    const id = window.setTimeout(() => {
+      void load()
+    }, 0)
+    return () => window.clearTimeout(id)
   }, [authed])
 
   useEffect(() => {
     if (!editing) return
     setValue('title', editing.title)
     setValue('description', editing.description)
-    setValue('technologies', editing.technologies.join(', '))
+    setValue(
+      'technologies',
+      (Array.isArray(editing.technologies) ? editing.technologies : []).join(', '),
+    )
     setValue('projectUrl', editing.projectUrl ?? '')
     setValue('githubUrl', editing.githubUrl ?? '')
     setValue('imageUrl', editing.imageUrl.startsWith('/uploads') ? '' : editing.imageUrl)
-    setImageFile(null)
+    const id = window.setTimeout(() => setImageFile(null), 0)
+    return () => window.clearTimeout(id)
   }, [editing, setValue])
 
   const tryAuth = () => {
@@ -106,7 +131,7 @@ export function DashboardPage() {
     try {
       const fd = buildFd(values)
       const r = await api.post<Project>('/api/projects', fd)
-      setProjects((p) => [r.data, ...p])
+      setProjects((p) => [normalizeProject(r.data), ...(Array.isArray(p) ? p : [])])
       setImageFile(null)
       reset()
     } catch {
@@ -119,7 +144,8 @@ export function DashboardPage() {
     try {
       const fd = buildFd(values)
       const r = await api.put<Project>(`/api/projects/${editing.id}`, fd)
-      setProjects((p) => p.map((x) => (x.id === r.data.id ? r.data : x)))
+      const updated = normalizeProject(r.data)
+      setProjects((p) => (Array.isArray(p) ? p : []).map((x) => (x.id === updated.id ? updated : x)))
       setEditing(null)
       setImageFile(null)
       reset()
@@ -207,7 +233,7 @@ export function DashboardPage() {
 
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-4">
-            {projects.map((p, i) => (
+            {(Array.isArray(projects) ? projects : []).map((p, i) => (
               <motion.div
                 key={p.id}
                 initial={{ opacity: 0, y: 12 }}

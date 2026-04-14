@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 
 export function useCountUp(target: number, durationMs = 1600, startWhen = true) {
-  const [value, setValue] = useState(0)
+  const [value, setValue] = useState(() => {
+    if (typeof window === 'undefined') return 0
+    if (!startWhen) return 0
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? target : 0
+  })
   const raf = useRef<number | null>(null)
 
   useEffect(() => {
     if (!startWhen) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce) {
-      setValue(target)
-      return
+      const timeout = window.setTimeout(() => setValue(target), 0)
+      return () => window.clearTimeout(timeout)
     }
     const t0 = performance.now()
     const tick = (now: number) => {

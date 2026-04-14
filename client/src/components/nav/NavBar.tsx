@@ -2,23 +2,29 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, Moon, Sparkles, Sun, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useTheme } from '../../context/ThemeContext'
-import { useLoader } from '../../context/LoaderContext'
+import { useTheme } from '../../context/useTheme'
+import { useLoader } from '../../context/useLoader'
+import type { JSX } from 'react/jsx-runtime'
 
-const links = [
+interface NavLink {
+  id: string
+  label: string
+}
+
+const links: ReadonlyArray<NavLink> = [
   { id: 'profile', label: 'Profile' },
   { id: 'about', label: 'About' },
   { id: 'skills', label: 'Skills' },
   { id: 'projects', label: 'Projects' },
   { id: 'stats', label: 'Stats' },
   { id: 'contact', label: 'Contact' },
-] as const
+]
 
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-export function NavBar() {
+export function NavBar(): JSX.Element {
   const { theme, toggle } = useTheme()
   const { done } = useLoader()
   const [open, setOpen] = useState(false)
@@ -62,7 +68,7 @@ export function NavBar() {
         </button>
 
         <nav className="hidden items-center gap-1 md:flex">
-          {links.map((l) => (
+          {(Array.isArray(links) ? links : []).map((l) => (
             <button
               key={l.id}
               type="button"
@@ -118,7 +124,7 @@ export function NavBar() {
               >
                 <X className="h-5 w-5" />
               </button>
-              {links.map((l, i) => (
+              {(Array.isArray(links) ? links : []).map((l, i) => (
                 <motion.button
                   key={l.id}
                   type="button"

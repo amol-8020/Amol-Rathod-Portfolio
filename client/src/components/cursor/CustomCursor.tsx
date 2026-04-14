@@ -1,8 +1,11 @@
 import { motion, useMotionValue, useSpring } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 export function CustomCursor() {
-  const [on, setOn] = useState(false)
+  const on =
+    typeof window !== 'undefined' &&
+    !window.matchMedia('(pointer: coarse)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const sx = useSpring(x, { stiffness: 280, damping: 28, mass: 0.45 })
@@ -11,11 +14,7 @@ export function CustomCursor() {
   const hy = useSpring(y, { stiffness: 1200, damping: 55 })
 
   useEffect(() => {
-    const mqCoarse = window.matchMedia('(pointer: coarse)')
-    const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const fine = !mqCoarse.matches && !mqReduce.matches
-    setOn(fine)
-    if (!fine) return
+    if (!on) return
 
     document.documentElement.classList.add('no-cursor')
     const move = (e: MouseEvent) => {
@@ -27,7 +26,7 @@ export function CustomCursor() {
       window.removeEventListener('mousemove', move)
       document.documentElement.classList.remove('no-cursor')
     }
-  }, [x, y])
+  }, [on, x, y])
 
   if (!on) return null
 

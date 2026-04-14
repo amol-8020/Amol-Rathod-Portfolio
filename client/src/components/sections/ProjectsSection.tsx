@@ -13,7 +13,24 @@ const projectImagesByTitle: Record<string, string> = {
   'CampusVoice: Online Complaint, Suggestion & Lost and Found Portal': campusVoiceImage,
 }
 
-export function ProjectsSection() {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function normalizeProject(project: unknown): Project {
+  const p = isRecord(project) ? project : {}
+  return {
+    id: typeof p.id === 'string' ? p.id : crypto.randomUUID(),
+    title: typeof p.title === 'string' ? p.title : 'Untitled project',
+    description: typeof p.description === 'string' ? p.description : '',
+    technologies: Array.isArray(p.technologies) ? p.technologies.filter((item): item is string => typeof item === 'string') : [],
+    imageUrl: typeof p.imageUrl === 'string' ? p.imageUrl : '',
+    projectUrl: typeof p.projectUrl === 'string' ? p.projectUrl : undefined,
+    githubUrl: typeof p.githubUrl === 'string' ? p.githubUrl : undefined,
+  }
+}
+
+export function ProjectsSection(): JSX.Element {
   const ref = useSectionReveal<HTMLElement>()
   const [items, setItems] = useState<Project[]>([])
   const [err, setErr] = useState<string | null>(null)
@@ -21,7 +38,9 @@ export function ProjectsSection() {
   useEffect(() => {
     api
       .get<Project[]>('/api/projects')
-      .then((r) => setItems(r.data))
+      .then((r) =>
+        setItems((Array.isArray(r.data) ? r.data : []).map((project) => normalizeProject(project))),
+      )
       .catch(() => setErr('Unable to load projects. Start the API server on port 4000.'))
   }, [])
 
@@ -47,7 +66,7 @@ export function ProjectsSection() {
       )}
 
       <div className="mt-12 grid gap-6 md:grid-cols-2">
-        {items.map((p, i) => (
+        {(Array.isArray(items) ? items : []).map((p, i) => (
           <motion.article
             key={p.id}
             layout
@@ -78,7 +97,7 @@ export function ProjectsSection() {
               <h3 className="font-display text-2xl font-semibold">{p.title}</h3>
               <p className="text-sm leading-relaxed text-[color:var(--muted)]">{p.description}</p>
               <div className="flex flex-wrap gap-2">
-                {p.technologies.map((t) => (
+                {(Array.isArray(p.technologies) ? p.technologies : []).map((t) => (
                   <span
                     key={t}
                     className="rounded-full border border-[color:var(--stroke)] px-2 py-0.5 text-[11px] uppercase tracking-wide text-[color:var(--muted)]"

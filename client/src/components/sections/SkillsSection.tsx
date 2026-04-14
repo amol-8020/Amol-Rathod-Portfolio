@@ -1,7 +1,17 @@
 import { motion } from 'framer-motion'
 import { useSectionReveal } from '../../hooks/useSectionReveal'
 
-const groups = [
+interface SkillItem {
+  name: string
+  value: number
+}
+
+interface SkillGroup {
+  title: string
+  items: SkillItem[]
+}
+
+const groups: ReadonlyArray<SkillGroup> = [
   {
     title: 'Programming',
     items: [
@@ -25,9 +35,9 @@ const groups = [
       { name: 'AI Tools', value: 89 },
     ],
   },
-] as const
+]
 
-export function SkillsSection() {
+export function SkillsSection(): JSX.Element {
   const ref = useSectionReveal<HTMLElement>()
 
   return (
@@ -46,7 +56,7 @@ export function SkillsSection() {
       </div>
 
       <div className="mt-12 grid gap-6 md:grid-cols-3">
-        {groups.map((g, gi) => (
+        {(Array.isArray(groups) ? groups : []).map((g, gi) => (
           <motion.div
             key={g.title}
             initial={{ opacity: 0, y: 18 }}
@@ -64,7 +74,7 @@ export function SkillsSection() {
             />
             <p className="relative font-display text-lg font-semibold">{g.title}</p>
             <div className="relative mt-6 space-y-5">
-              {g.items.map((it) => (
+              {(Array.isArray(g.items) ? g.items : []).map((it) => (
                 <div key={it.name}>
                   {/** Keep Programming fills identical to Soft Skills with guaranteed width animation */}
                   {(() => {

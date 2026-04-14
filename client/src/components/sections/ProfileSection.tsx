@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useLoader } from '../../context/LoaderContext'
+import { useLoader } from '../../context/useLoader'
 import { useSectionReveal } from '../../hooks/useSectionReveal'
 
 export function ProfileSection() {

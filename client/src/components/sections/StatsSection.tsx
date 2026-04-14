@@ -2,15 +2,22 @@ import { useEffect, useState } from 'react'
 import { api } from '../../lib/api'
 import { useCountUp } from '../../hooks/useCountUp'
 import { useSectionReveal } from '../../hooks/useSectionReveal'
+import type { Project } from '../../types/project'
 
-export function StatsSection() {
+interface StatTile {
+  label: string
+  value: number
+  suffix: string
+}
+
+export function StatsSection(): JSX.Element {
   const ref = useSectionReveal<HTMLElement>()
   const [projects, setProjects] = useState(0)
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     api
-      .get('/api/projects')
+      .get<Project[]>('/api/projects')
       .then((r) => {
         setProjects(Array.isArray(r.data) ? r.data.length : 0)
         setVisible(true)
@@ -25,7 +32,7 @@ export function StatsSection() {
   const sCount = useCountUp(5, 1400, visible)
   const focus = useCountUp(3, 1600, visible)
 
-  const tiles = [
+  const tiles: StatTile[] = [
     { label: 'Projects', value: pCount, suffix: '+' },
     { label: 'Skills', value: sCount, suffix: '+' },
     { label: 'Focus areas', value: focus, suffix: '+' },
@@ -47,7 +54,7 @@ export function StatsSection() {
       </div>
 
       <div className="mt-12 grid gap-6 md:grid-cols-3">
-        {tiles.map((t) => (
+        {(Array.isArray(tiles) ? tiles : []).map((t) => (
           <div key={t.label} className="glass-panel relative overflow-hidden rounded-3xl p-8">
             <div
               className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-2xl"

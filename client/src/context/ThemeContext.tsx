@@ -1,20 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-
-type Theme = 'dark' | 'light'
-
-type ThemeContextValue = {
-  theme: Theme
-  toggle: () => void
-}
-
-const ThemeContext = createContext<ThemeContextValue | null>(null)
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ThemeContext } from './ThemeContextCore'
+import type { Theme } from './ThemeContextCore'
 
 const STORAGE_KEY = 'portfolio-theme'
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'dark'
-    const saved = localStorage.getItem(STORAGE_KEY) as Theme | null
+    const saved = localStorage.getItem(STORAGE_KEY)
     if (saved === 'light' || saved === 'dark') return saved
     return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
   })
@@ -31,10 +24,4 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(() => ({ theme, toggle }), [theme, toggle])
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-}
-
-export function useTheme() {
-  const ctx = useContext(ThemeContext)
-  if (!ctx) throw new Error('useTheme must be used within ThemeProvider')
-  return ctx
 }

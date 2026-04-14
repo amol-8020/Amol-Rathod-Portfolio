@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { IconGithub, IconLinkedin } from '../icons/BrandIcons'
-import { useLoader } from '../../context/LoaderContext'
+import { useLoader } from '../../context/useLoader'
 import { useTypewriter } from '../../hooks/useTypewriter'
 
 export function HeroSection() {
